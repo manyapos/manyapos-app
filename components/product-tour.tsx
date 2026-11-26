@@ -14,7 +14,7 @@ export function ProductTour({ autoStart = false }: { autoStart?: boolean }) {
   const driverRef = useRef<ReturnType<typeof driver> | null>(null)
 
   // Steps untuk halaman ini — fallback ke steps global jika tidak ada
-  const steps = tourSteps[pathname] ?? tourSteps["/dashboard"] ?? []
+  const steps = tourSteps[pathname] ?? []
   const tourKey = TOUR_KEY_PREFIX + pathname
 
   function startTour() {

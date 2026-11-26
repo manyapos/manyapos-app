@@ -15,6 +15,7 @@ export function generateInvoiceNumber(): string {
   const y = now.getFullYear()
   const m = String(now.getMonth() + 1).padStart(2, "0")
   const d = String(now.getDate()).padStart(2, "0")
-  const rand = String(Math.floor(Math.random() * 10000)).padStart(4, "0")
-  return `INV-${y}${m}${d}-${rand}`
+  // ponytail: timestamp-ms + random suffix — collision-safe; upgrade to DB sequence if >1000 tx/sec
+  const seq = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`.toUpperCase()
+  return `INV-${y}${m}${d}-${seq}`
 }

@@ -72,11 +72,36 @@ export async function createTransaction(data: {
       })
     }
 
+    // Low-stock notifications
+    const lowStockProducts = (
+      await Promise.all(data.items.map(i => db.product.findUnique({ where: { id: i.productId } })))
+    ).filter((p): p is NonNullable<typeof p> => !!p && p.stock <= p.minStock)
+
+    if (lowStockProducts.length) {
+      await db.notification.createMany({
+        data: lowStockProducts.map(p => ({
+          type: "low_stock",
+          message: `Stok "${p.name}" tinggal ${p.stock} ${p.unit} (minimum: ${p.minStock})`,
+        })),
+      })
+    }
+
+    // Large transaction notification (≥ Rp 1.000.000)
+    if (transaction.total >= 1_000_000) {
+      await db.notification.create({
+        data: {
+          type: "large_transaction",
+          message: `Transaksi besar ${transaction.invoiceNumber} senilai Rp ${(transaction.total).toLocaleString("id-ID")}`,
+        },
+      })
+    }
+
     return transaction
   })
 
   revalidatePath("/pos")
   revalidatePath("/dashboard")
+  revalidatePath("/dashboard/notifications")
   return tx
 }
 
@@ -153,6 +178,11 @@ export async function createCustomer(data: { name: string; phone?: string; email
 
 export async function updateCustomer(id: string, data: { name?: string; phone?: string; email?: string; address?: string }) {
   await prisma.customer.update({ where: { id }, data })
+  revalidatePath("/dashboard/customers")
+}
+
+export async function deleteCustomer(id: string) {
+  await prisma.customer.delete({ where: { id } })
   revalidatePath("/dashboard/customers")
 }
 
@@ -315,7 +345,16 @@ export async function closeShift(id: string, data: { closingBalance: number; not
     },
   })
 
+  await prisma.notification.create({
+    data: {
+      type: "shift_end",
+      message: `Shift ditutup — ${txs.length} transaksi, total penjualan Rp ${totalSales.toLocaleString("id-ID")}`,
+      userId: shift.userId,
+    },
+  })
+
   revalidatePath("/dashboard/shifts")
+  revalidatePath("/dashboard/notifications")
   revalidatePath("/pos")
 }
 

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Bell, BellOff, CheckCheck, Trash2, AlertTriangle, Info } from "lucide-react"
+import { Bell, BellOff, CheckCheck, Trash2, AlertTriangle, Info, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +16,7 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
   low_stock: <AlertTriangle className="size-4 text-amber-500" />,
   shift_end: <BellOff className="size-4 text-blue-500" />,
   new_order: <Bell className="size-4 text-green-500" />,
+  large_transaction: <DollarSign className="size-4 text-emerald-500" />,
 }
 
 export function NotificationsClient({ notifications }: { notifications: Notif[] }) {

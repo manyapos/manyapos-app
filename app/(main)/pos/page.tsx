@@ -8,7 +8,11 @@ export default async function POSPage() {
   if (!session) redirect("/login")
 
   const [products, categories, customers, settings] = await Promise.all([
-    prisma.product.findMany({ where: { isActive: true }, include: { category: true }, orderBy: { name: "asc" } }),
+    prisma.product.findMany({
+      where: { isActive: true },
+      include: { category: true },
+      orderBy: { name: "asc" },
+    }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.customer.findMany({ orderBy: { name: "asc" }, take: 100 }),
     prisma.setting.findMany(),
@@ -21,8 +25,11 @@ export default async function POSPage() {
       products={products.map((p) => ({ ...p, category: p.category }))}
       categories={categories}
       customers={customers}
-      taxRate={settingsMap.tax_enabled === "true" ? Number(settingsMap.tax_rate || 0) : 0}
-      storeName={settingsMap.store_name || "Manya POS"}
+      taxRate={
+        settingsMap.tax_enabled === "true"
+          ? Number(settingsMap.tax_rate || 0)
+          : 0
+      }
     />
   )
 }

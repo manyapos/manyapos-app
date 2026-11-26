@@ -55,7 +55,7 @@ export function PaymentModal({
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden" showCloseButton={false}>
         {/* ── Total banner ── */}
         <div className="bg-primary px-6 py-5 text-primary-foreground">
           <div className="flex items-start justify-between">

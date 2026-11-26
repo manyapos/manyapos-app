@@ -89,10 +89,15 @@ function DatePickerField({
       <Label>{label}</Label>
       <Popover>
         <PopoverTrigger
-          className={cn(
-            "inline-flex w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-normal shadow-xs hover:bg-muted",
-            !value && "text-muted-foreground"
-          )}
+          render={
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start gap-2 font-normal",
+                !value && "text-muted-foreground"
+              )}
+            />
+          }
         >
           <CalendarIcon className="size-4 shrink-0" />
           {value

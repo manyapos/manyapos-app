@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { type ColumnDef } from "@/components/ui/data-table"
-import { createUser, deleteUser } from "@/lib/actions"
+import { createUser, updateUser, deleteUser } from "@/lib/actions"
 import { PageTitle } from "@/components/ui/page-title"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -14,14 +14,15 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { DataTable } from "@/components/ui/data-table"
-import { Plus, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import { formatDate } from "@/lib/format"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 const schema = z.object({
   name:     z.string().min(1, "Nama wajib diisi"),
   email:    z.string().email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
+  password: z.string().min(6, "Password minimal 6 karakter").or(z.literal("")),
   role:     z.enum(["CASHIER", "MANAGER"]),
   pin:      z.string().max(4).optional(),
 })
@@ -35,7 +36,9 @@ function FieldError({ msg }: { msg?: string }) {
 }
 
 export function UserList({ users }: { users: User[] }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [editing, setEditing] = useState<User | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
@@ -43,14 +46,40 @@ export function UserList({ users }: { users: User[] }) {
     defaultValues: { name: "", email: "", password: "", role: "CASHIER", pin: "" },
   })
 
+  function openNew() {
+    setEditing(null)
+    reset({ name: "", email: "", password: "", role: "CASHIER", pin: "" })
+    setOpen(true)
+  }
+
+  function openEdit(u: User) {
+    setEditing(u)
+    reset({ name: u.name, email: u.email, password: "", role: u.role as "CASHIER" | "MANAGER", pin: "" })
+    setOpen(true)
+  }
+
   async function onSubmit(data: FormValues) {
     try {
-      await createUser({ ...data, pin: data.pin || undefined })
-      toast.success("Pengguna ditambahkan")
+      if (editing) {
+        await updateUser(editing.id, {
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          pin: data.pin || undefined,
+          password: data.password || undefined,
+        })
+        toast.success("Pengguna diperbarui")
+      } else {
+        if (!data.password) { toast.error("Password wajib untuk pengguna baru"); return }
+        await createUser({ ...data, pin: data.pin || undefined })
+        toast.success("Pengguna ditambahkan")
+      }
       reset()
       setOpen(false)
+      setEditing(null)
+      router.refresh()
     } catch {
-      toast.error("Email sudah digunakan")
+      toast.error(editing ? "Gagal memperbarui pengguna" : "Email sudah digunakan")
     }
   }
 
@@ -74,11 +103,16 @@ export function UserList({ users }: { users: User[] }) {
     },
     { accessorKey: "createdAt", header: "Dibuat", cell: ({ row }) => <span className="text-xs">{formatDate(row.original.createdAt)}</span> },
     {
-      id: "actions", header: "Aksi", size: 60,
+      id: "actions", header: "Aksi", size: 80,
       cell: ({ row }) => (
-        <Button variant="ghost" size="icon-xs" onClick={() => setDeleteId(row.original.id)}>
-          <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
-        </Button>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="icon-xs" onClick={() => openEdit(row.original)} title="Edit">
+            <Pencil className="size-4 text-muted-foreground" />
+          </Button>
+          <Button variant="ghost" size="icon-xs" onClick={() => setDeleteId(row.original.id)} title="Hapus">
+            <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+          </Button>
+        </div>
       ),
     },
   ]
@@ -87,12 +121,12 @@ export function UserList({ users }: { users: User[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <PageTitle title="Pengguna" description="Kelola akun pengguna sistem: admin, manajer, dan kasir beserta hak aksesnya." />
-        <Button data-tour="add-user-btn" onClick={() => setOpen(true)}><Plus className="size-4" /> Tambah Pengguna</Button>
+        <Button data-tour="add-user-btn" onClick={openNew}><Plus className="size-4" /> Tambah Pengguna</Button>
       </div>
 
-      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset() }}>
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { reset(); setEditing(null) } }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Tambah Pengguna</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? "Edit Pengguna" : "Tambah Pengguna"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label>Nama</Label>
@@ -105,8 +139,8 @@ export function UserList({ users }: { users: User[] }) {
               <FieldError msg={errors.email?.message} />
             </div>
             <div className="space-y-2">
-              <Label>Password</Label>
-              <Input {...register("password")} type="password" placeholder="Password" />
+              <Label>Password{editing ? " (kosongkan jika tidak diubah)" : ""}</Label>
+              <Input {...register("password")} type="password" placeholder={editing ? "Biarkan kosong" : "Password"} />
               <FieldError msg={errors.password?.message} />
             </div>
             <div className="space-y-2">
@@ -126,7 +160,7 @@ export function UserList({ users }: { users: User[] }) {
               <Input {...register("pin")} placeholder="4 digit" maxLength={4} />
               <FieldError msg={errors.pin?.message} />
             </div>
-            <DialogFooter><Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Menyimpan..." : "Simpan"}</Button></DialogFooter>
+            <DialogFooter><Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Menyimpan..." : editing ? "Perbarui" : "Simpan"}</Button></DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

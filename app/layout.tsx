@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Nunito_Sans } from "next/font/google"
+import { Geist, Geist_Mono, Nunito_Sans, Montserrat, Raleway, Inter } from "next/font/google"
 import type { Metadata } from "next"
 
 import "./globals.css"
@@ -6,11 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { RegisterSW } from "@/components/register-sw"
 import { cn } from "@/lib/utils"
 
-const nunitoSansHeading = Nunito_Sans({
-  subsets: ["latin"],
-  variable: "--font-heading",
-})
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
+const geistHeading = Geist({subsets:['latin'],variable:'--font-heading'})
+const inter = Inter({subsets:['latin'],variable:'--font-sans'})
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
@@ -51,8 +48,8 @@ export default function RootLayout({
         "antialiased",
         fontMono.variable,
         "font-sans",
-        geist.variable,
-        nunitoSansHeading.variable
+        inter.variable,
+        geistHeading.variable
       )}
     >
       <body>

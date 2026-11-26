@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; background: #09090b; color: #fafafa; font-family: system-ui, sans-serif; }
+    .loader { text-align: center; }
+    .loader h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .loader p { color: #a1a1aa; font-size: 0.875rem; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #27272a; border-top-color: #fafafa; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 1rem auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <h1>Manya POS</h1>
+    <div class="spinner"></div>
+    <p>Memuat aplikasi...</p>
+  </div>
+</body>
+</html>

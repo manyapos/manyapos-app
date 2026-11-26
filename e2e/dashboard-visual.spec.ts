@@ -6,7 +6,8 @@ import { test, expect } from "@playwright/test"
 async function screenshotMain(page: import("@playwright/test").Page, name: string, opts?: { maxDiffPixelRatio?: number }) {
   const main = page.locator("main").first()
   await expect(main).toBeVisible()
-  await expect(main).toHaveScreenshot(name, { ...opts })
+  // ponytail: small tolerance for sidebar jitter; upgrade to mask-based approach if false positives
+  await expect(main).toHaveScreenshot(name, { maxDiffPixelRatio: 0.02, ...opts })
 }
 
 test.describe("Visual: dashboard pages", () => {

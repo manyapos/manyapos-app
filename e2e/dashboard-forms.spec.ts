@@ -161,9 +161,15 @@ test.describe("Settings forms", () => {
 
   test("store info section loads and saves", async ({ page }) => {
     await expect(page.locator("#store_name")).toBeVisible()
+    // Save original value to restore after test
+    const original = await page.locator("#store_name").inputValue()
     await page.locator("#store_name").fill("Toko Test E2E")
     await page.locator("#store_phone").fill("081234567890")
     await page.locator("#store_email").fill("toko@test.com")
+    await page.getByRole("button", { name: "Simpan" }).first().click()
+    await expect(page.getByText("Pengaturan disimpan")).toBeVisible({ timeout: 10_000 })
+    // Restore original store name
+    await page.locator("#store_name").fill(original || "Toko Manya")
     await page.getByRole("button", { name: "Simpan" }).first().click()
     await expect(page.getByText("Pengaturan disimpan")).toBeVisible({ timeout: 10_000 })
   })

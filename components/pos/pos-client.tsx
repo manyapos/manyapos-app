@@ -163,7 +163,7 @@ export function POSClient({
   void customers
 
   return (
-    <div className="flex h-full bg-muted/30">
+    <div className="flex h-screen bg-muted/30">
       {/* ── Left: Product catalog ── */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {" "}

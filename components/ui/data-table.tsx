@@ -149,8 +149,8 @@ export function DataTable<TData>({
         </div>
       )}
 
-      {/* Table */}
-      <div className="rounded-xl border overflow-x-auto">
+      {/* Table — desktop */}
+      <div className="hidden md:block rounded-xl border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40 hover:bg-muted/40">
@@ -193,6 +193,45 @@ export function DataTable<TData>({
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Cards — mobile/tablet */}
+      <div className="md:hidden space-y-3">
+        {paged.length ? paged.map((row, idx) => {
+          const actionCol = columns.find(c => colId(c) === "actions")
+          const dataCols = columns.filter(c => colId(c) !== "actions")
+          return (
+            <div key={idx} className="rounded-xl border bg-card p-4 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  {dataCols[0] && (
+                    <div className="font-medium truncate">
+                      {renderCell(dataCols[0], row, page * pageSize + idx)}
+                    </div>
+                  )}
+                </div>
+                {actionCol && (
+                  <div className="shrink-0">
+                    {renderCell(actionCol, row, page * pageSize + idx)}
+                  </div>
+                )}
+              </div>
+              {dataCols.slice(1).map((col) => {
+                const headerText = typeof col.header === "string" ? col.header : colId(col)
+                return (
+                  <div key={colId(col)} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-muted-foreground text-xs">{headerText}</span>
+                    <span className="text-right truncate">{renderCell(col, row, page * pageSize + idx)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        }) : (
+          <div className="rounded-xl border p-8 text-center text-muted-foreground">
+            Tidak ada data
+          </div>
+        )}
       </div>
 
       {/* Pagination */}

@@ -71,7 +71,7 @@ export function NewPOForm({ suppliers, products }: { suppliers: Supplier[]; prod
               <Label>Supplier</Label>
               <Controller control={control} name="supplierId" render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange} data-tour="po-supplier">
-                  <SelectTrigger><SelectValue placeholder="Pilih supplier" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Pilih supplier">{suppliers.find(s => s.id === field.value)?.name}</SelectValue></SelectTrigger>
                   <SelectContent>
                     {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                   </SelectContent>
@@ -111,7 +111,7 @@ export function NewPOForm({ suppliers, products }: { suppliers: Supplier[]; prod
                       setValue(`items.${idx}.costPrice`, product.costPrice)
                     }
                   }}>
-                    <SelectTrigger><SelectValue placeholder="Pilih produk" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Pilih produk">{products.find(p => p.id === f.value)?.name}</SelectValue></SelectTrigger>
                     <SelectContent>
                       {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name} ({p.sku})</SelectItem>)}
                     </SelectContent>

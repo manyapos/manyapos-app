@@ -68,7 +68,7 @@ function StockForm({ products, type }: { products: Product[]; type: "in" | "out"
             <Label>Produk</Label>
             <Controller name="productId" control={control} render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Pilih produk" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Pilih produk">{products.find(p => p.id === field.value)?.name}</SelectValue></SelectTrigger>
                 <SelectContent>
                   {products.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.name} (Stok: {p.stock} {p.unit})</SelectItem>
@@ -84,7 +84,7 @@ function StockForm({ products, type }: { products: Product[]; type: "in" | "out"
               <Label>Tipe Penyesuaian</Label>
               <Controller name="type" control={control} render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue>{{ in: "Tambah Stok", out: "Kurang Stok", adjustment: "Koreksi (set ke nilai)" }[field.value]}</SelectValue></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="in">Tambah Stok</SelectItem>
                     <SelectItem value="out">Kurang Stok</SelectItem>

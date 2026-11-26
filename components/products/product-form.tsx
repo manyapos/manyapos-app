@@ -108,7 +108,7 @@ export function ProductForm({ product, categories }: { product?: Product; catego
             <Label>Kategori</Label>
             <Controller name="categoryId" control={control} render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Pilih kategori">{categories.find(c => c.id === field.value)?.name}</SelectValue></SelectTrigger>
                 <SelectContent>
                   {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
@@ -158,7 +158,7 @@ export function ProductForm({ product, categories }: { product?: Product; catego
               </div>
               <Controller name="unit" control={control} render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue>{{ pcs: "Pcs", kg: "Kg", liter: "Liter" }[field.value]}</SelectValue></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pcs">Pcs</SelectItem>
                     <SelectItem value="kg">Kg</SelectItem>

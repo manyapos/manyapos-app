@@ -19,13 +19,13 @@ test.describe("Category edit dialog prefill", () => {
     await expect(dialog.getByPlaceholder("Deskripsi (opsional)")).toHaveValue("Aneka makanan")
   })
 
-  test("edit Snack shows correct values", async ({ page }) => {
+  test("edit Minuman shows correct values", async ({ page }) => {
     await page.goto("/dashboard/categories")
-    const row = page.getByRole("row").filter({ hasText: "Snack" })
+    const row = page.getByRole("row").filter({ hasText: "Minuman" })
     await row.getByRole("button").first().click()
     const dialog = page.locator("[role=dialog]")
-    await expect(dialog.getByPlaceholder("Nama kategori")).toHaveValue("Snack")
-    await expect(dialog.getByPlaceholder("Deskripsi (opsional)")).toHaveValue("Camilan dan snack")
+    await expect(dialog.getByPlaceholder("Nama kategori")).toHaveValue("Minuman")
+    await expect(dialog.getByPlaceholder("Deskripsi (opsional)")).toHaveValue("Aneka minuman")
   })
 })
 
@@ -98,17 +98,24 @@ test.describe("Discount edit dialog prefill", () => {
 // ── Product edit page ──────────────────────────────────────────
 
 test.describe("Product edit dialog prefill", () => {
-  test("edit first product — dialog opens with Edit Produk title", async ({ page }) => {
+  test("edit first product shows pre-filled fields", async ({ page }) => {
     await page.goto("/dashboard/products")
     await expect(page.getByRole("heading", { name: "Produk" })).toBeVisible()
     // Click the first pencil (edit) button in the product table
     const editButtons = page.locator("[data-tour=product-table] button").filter({ has: page.locator("svg.lucide-pencil") })
     await editButtons.first().click()
     await expect(page.getByText("Edit Produk")).toBeVisible()
-    // ponytail: ProductDialog reuses same useForm instance for add/edit
-    // so defaultValues may not refresh on edit click — known limitation.
-    // We verify the dialog at least opens correctly with the edit title.
     const dialog = page.locator("[role=dialog]")
-    await expect(dialog).toBeVisible()
+    // Name should be pre-filled (not empty)
+    const nameInput = dialog.locator("input").first()
+    await expect(nameInput).not.toHaveValue("")
+    // SKU should be pre-filled
+    const skuInput = dialog.locator("input").nth(1)
+    await expect(skuInput).not.toHaveValue("")
+    // Price (PriceInput) should not be empty or "0"
+    const priceInput = dialog.locator('input[inputmode="numeric"]').first()
+    const priceValue = await priceInput.inputValue()
+    expect(priceValue).not.toBe("")
+    expect(priceValue).not.toBe("0")
   })
 })

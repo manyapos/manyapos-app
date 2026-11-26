@@ -98,7 +98,7 @@ function ProductDialog({ open, onOpenChange, product, categories }: {
             <Label>Kategori</Label>
             <Controller name="categoryId" control={control} render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Pilih kategori">{categories.find(c => c.id === field.value)?.name}</SelectValue></SelectTrigger>
                 <SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             )} />
@@ -132,7 +132,7 @@ function ProductDialog({ open, onOpenChange, product, categories }: {
               <Label>Satuan</Label>
               <Controller name="unit" control={control} render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue>{{ pcs: "Pcs", kg: "Kg", liter: "Liter" }[field.value]}</SelectValue></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pcs">Pcs</SelectItem>
                     <SelectItem value="kg">Kg</SelectItem>
@@ -198,7 +198,7 @@ export function ProductListClient({ products, categories }: {
       </div>
 
       <ProductDialog open={addOpen} onOpenChange={setAddOpen} categories={categories} />
-      <ProductDialog open={!!editProduct} onOpenChange={(v) => !v && setEditProduct(null)} product={editProduct ?? undefined} categories={categories} />
+      {editProduct && <ProductDialog open onOpenChange={(v) => !v && setEditProduct(null)} product={editProduct} categories={categories} />}
 
       <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <DialogContent>

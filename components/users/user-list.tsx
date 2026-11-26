@@ -113,7 +113,7 @@ export function UserList({ users }: { users: User[] }) {
               <Label>Role</Label>
               <Controller name="role" control={control} render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue>{{ CASHIER: "Kasir", MANAGER: "Manager" }[field.value]}</SelectValue></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="CASHIER">Kasir</SelectItem>
                     <SelectItem value="MANAGER">Manager</SelectItem>

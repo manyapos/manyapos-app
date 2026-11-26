@@ -1,0 +1,10 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top-left filled -->
+  <rect x="0" y="0" width="11.2" height="11.2" rx="2.24" fill="#0d9488"/>
+  <!-- Top-right dim -->
+  <rect x="13.76" y="0" width="11.2" height="11.2" rx="2.24" fill="#0d9488" opacity="0.3"/>
+  <!-- Bottom-left dim -->
+  <rect x="0" y="13.76" width="11.2" height="11.2" rx="2.24" fill="#0d9488" opacity="0.3"/>
+  <!-- Bottom-right filled -->
+  <rect x="13.76" y="13.76" width="11.2" height="11.2" rx="2.24" fill="#0d9488"/>
+</svg>

@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+model User {
+  id                   String          @id @default(cuid())
+  name                 String
+  email                String          @unique
+  password             String
+  role                 String          @default("CASHIER") // ADMIN | MANAGER | CASHIER
+  pin                  String?
+  avatar               String?
+  twoFactorEnabled     Boolean         @default(false)
+  twoFactorSecret      String?
+  passwordResetToken   String?
+  passwordResetExpiry  DateTime?
+  createdAt            DateTime        @default(now())
+  transactions         Transaction[]
+  stockMovements       StockMovement[]
+  expenses             Expense[]
+  shifts               Shift[]
+  purchaseOrders       PurchaseOrder[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  products    Product[]
+}
+
+model Product {
+  id          String            @id @default(cuid())
+  name        String
+  sku         String            @unique
+  barcode     String?
+  categoryId  String
+  category    Category          @relation(fields: [categoryId], references: [id])
+  price       Int               // stored in cents/sen
+  costPrice   Int               @default(0)
+  stock       Int               @default(0)
+  minStock    Int               @default(5)
+  unit        String            @default("pcs") // pcs | kg | liter
+  image       String?
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  items       TransactionItem[]
+  movements   StockMovement[]
+}
+
+model Customer {
+  id          String        @id @default(cuid())
+  name        String
+  phone       String?
+  email       String?
+  address     String?
+  points      Int           @default(0)
+  totalSpent  Int           @default(0)
+  tier        String        @default("regular") // regular | silver | gold | platinum
+  createdAt   DateTime      @default(now())
+  transactions Transaction[]
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  invoiceNumber String            @unique
+  userId        String
+  user          User              @relation(fields: [userId], references: [id])
+  customerId    String?
+  customer      Customer?         @relation(fields: [customerId], references: [id])
+  shiftId       String?
+  shift         Shift?            @relation(fields: [shiftId], references: [id])
+  items         TransactionItem[]
+  subtotal      Int
+  discount      Int               @default(0)
+  discountType  String            @default("fixed") // percentage | fixed
+  tax           Int               @default(0)
+  total         Int
+  paymentMethod String            @default("cash") // cash | qris | card | ewallet
+  amountPaid    Int               @default(0)
+  change        Int               @default(0)
+  note          String?
+  status        String            @default("completed") // completed | voided | refunded
+  createdAt     DateTime          @default(now())
+}
+
+model Shift {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  startTime       DateTime      @default(now())
+  endTime         DateTime?
+  openingBalance  Int           @default(0)
+  closingBalance  Int?
+  totalCash       Int           @default(0)
+  totalQris       Int           @default(0)
+  totalCard       Int           @default(0)
+  totalEwallet    Int           @default(0)
+  totalSales      Int           @default(0)
+  totalTransactions Int         @default(0)
+  note            String?
+  status          String        @default("open") // open | closed
+  transactions    Transaction[]
+  createdAt       DateTime      @default(now())
+}
+
+model TransactionItem {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+  productName   String
+  quantity      Int
+  price         Int
+  discount      Int         @default(0)
+  subtotal      Int
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    String
+  description String
+  amount      Int
+  date        DateTime
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model StockMovement {
+  id              String         @id @default(cuid())
+  productId       String
+  product         Product        @relation(fields: [productId], references: [id])
+  type            String         // in | out | adjustment
+  quantity        Int
+  note            String?
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  createdAt       DateTime       @default(now())
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model Supplier {
+  id        String          @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  createdAt DateTime        @default(now())
+  orders    PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id         String              @id @default(cuid())
+  supplierId String
+  supplier   Supplier            @relation(fields: [supplierId], references: [id])
+  userId     String
+  user       User                @relation(fields: [userId], references: [id])
+  status     String              @default("draft") // draft | ordered | received | cancelled
+  total      Int                 @default(0)
+  note       String?
+  createdAt  DateTime            @default(now())
+  items      PurchaseOrderItem[]
+  movements  StockMovement[]
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId       String
+  productName     String
+  quantity        Int
+  costPrice       Int
+  subtotal        Int
+}
+
+model Discount {
+  id         String    @id @default(cuid())
+  name       String
+  type       String    @default("percentage") // percentage | fixed
+  value      Int       // persen atau nominal sen
+  minPurchase Int      @default(0)
+  startDate  DateTime?
+  endDate    DateTime?
+  isActive   Boolean   @default(true)
+  usageLimit Int?
+  usageCount Int       @default(0)
+  code       String?   @unique
+  createdAt  DateTime  @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // low_stock | shift_end | new_order
+  message   String
+  isRead    Boolean  @default(false)
+  userId    String?
+  createdAt DateTime @default(now())
+}

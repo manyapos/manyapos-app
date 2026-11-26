@@ -4,13 +4,11 @@ import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import {
   SidebarProvider,
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
-import { Breadcrumb } from "@/components/breadcrumb"
-import { ProductTour } from "@/components/product-tour"
 import { Toaster } from "sonner"
 import { BottomNav } from "@/components/bottom-nav"
+import { LayoutHeader } from "@/components/layout-header"
+import { LayoutMain } from "@/components/layout-main"
 
 export default async function AppLayout({
   children,
@@ -26,17 +24,8 @@ export default async function AppLayout({
     <SidebarProvider>
       <DashboardSidebar userRole={userRole} />
       <SidebarInset>
-        <header className="flex h-12 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1 hidden md:flex" />
-          <Separator orientation="vertical" className="hidden h-4 md:block" />
-          <Breadcrumb />
-          <div className="ml-auto">
-            <ProductTour autoStart />
-          </div>
-        </header>
-        <main className="flex-1 overflow-y-auto p-3 pb-20 sm:p-6 md:pb-6">
-          {children}
-        </main>
+        <LayoutHeader />
+        <LayoutMain>{children}</LayoutMain>
       </SidebarInset>
       <BottomNav userRole={userRole} />
       <Toaster position="top-right" richColors />

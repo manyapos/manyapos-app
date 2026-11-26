@@ -8,7 +8,23 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     headless: true,
   },
-  projects: [{ name: "chromium", use: { browserName: "chromium" } }],
+  projects: [
+    { name: "setup", testMatch: "auth.setup.ts" },
+    {
+      name: "public",
+      testIgnore: /dashboard|auth\.setup/,
+      use: { browserName: "chromium" },
+    },
+    {
+      name: "dashboard",
+      testMatch: "dashboard-forms.spec.ts",
+      dependencies: ["setup"],
+      use: {
+        browserName: "chromium",
+        storageState: "e2e/.auth/admin.json",
+      },
+    },
+  ],
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3000",

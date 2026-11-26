@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { TopLoader } from "@/components/top-loader"
 import { RegisterSW } from "@/components/register-sw"
 import { cn } from "@/lib/utils"
 
@@ -53,7 +54,10 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <TopLoader />
+          {children}
+        </ThemeProvider>
         <RegisterSW />
       </body>
     </html>

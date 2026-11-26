@@ -12,7 +12,7 @@ export function LayoutHeader() {
       <Separator orientation="vertical" className="hidden h-4 md:block" />
       <Breadcrumb />
       <div className="ml-auto">
-        <ProductTour autoStart />
+        <ProductTour />
       </div>
     </header>
   )

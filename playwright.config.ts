@@ -12,12 +12,12 @@ export default defineConfig({
     { name: "setup", testMatch: "auth.setup.ts" },
     {
       name: "public",
-      testIgnore: /dashboard|auth\.setup/,
+      testMatch: ["pages.spec.ts", "forms.spec.ts"],
       use: { browserName: "chromium" },
     },
     {
       name: "dashboard",
-      testMatch: "dashboard-forms.spec.ts",
+      testMatch: ["dashboard-forms.spec.ts", "dashboard-edit.spec.ts"],
       dependencies: ["setup"],
       use: {
         browserName: "chromium",

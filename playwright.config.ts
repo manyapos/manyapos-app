@@ -12,13 +12,22 @@ export default defineConfig({
     { name: "setup", testMatch: "auth.setup.ts" },
     {
       name: "public",
-      testMatch: ["pages.spec.ts", "forms.spec.ts"],
+      testMatch: ["pages.spec.ts", "forms.spec.ts", "visual.spec.ts"],
       use: { browserName: "chromium" },
+    },
+    {
+      name: "visual",
+      testMatch: "dashboard-visual.spec.ts",
+      dependencies: ["setup"],
+      use: {
+        browserName: "chromium",
+        storageState: "e2e/.auth/admin.json",
+      },
     },
     {
       name: "dashboard",
       testMatch: ["dashboard-forms.spec.ts", "dashboard-edit.spec.ts"],
-      dependencies: ["setup"],
+      dependencies: ["visual"],
       use: {
         browserName: "chromium",
         storageState: "e2e/.auth/admin.json",

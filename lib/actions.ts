@@ -47,13 +47,13 @@ export async function createTransaction(data: {
       include: { items: true },
     })
 
-    // Decrement stock
-    for (const item of data.items) {
-      await db.product.update({
+    // Stock updates + movements — parallel per item, each item's pair is independent
+    await Promise.all(data.items.flatMap(item => [
+      db.product.update({
         where: { id: item.productId },
         data: { stock: { decrement: item.quantity } },
-      })
-      await db.stockMovement.create({
+      }),
+      db.stockMovement.create({
         data: {
           productId: item.productId,
           type: "out",
@@ -61,8 +61,8 @@ export async function createTransaction(data: {
           note: `Penjualan ${transaction.invoiceNumber}`,
           userId: session.user.id,
         },
-      })
-    }
+      }),
+    ]))
 
     // Update customer total spent
     if (data.customerId) {
@@ -72,32 +72,36 @@ export async function createTransaction(data: {
       })
     }
 
-    // Low-stock notifications
-    const lowStockProducts = (
-      await Promise.all(data.items.map(i => db.product.findUnique({ where: { id: i.productId } })))
-    ).filter((p): p is NonNullable<typeof p> => !!p && p.stock <= p.minStock)
+    // Low-stock notifications — check updated products in parallel
+    const products = await Promise.all(
+      data.items.map(i => db.product.findUnique({ where: { id: i.productId } }))
+    )
+    const lowStockProducts = products.filter(
+      (p): p is NonNullable<typeof p> => !!p && p.stock <= p.minStock
+    )
 
-    if (lowStockProducts.length) {
-      await db.notification.createMany({
-        data: lowStockProducts.map(p => ({
-          type: "low_stock",
-          message: `Stok "${p.name}" tinggal ${p.stock} ${p.unit} (minimum: ${p.minStock})`,
-        })),
-      })
-    }
-
-    // Large transaction notification (≥ Rp 1.000.000)
-    if (transaction.total >= 1_000_000) {
-      await db.notification.create({
-        data: {
-          type: "large_transaction",
-          message: `Transaksi besar ${transaction.invoiceNumber} senilai Rp ${(transaction.total).toLocaleString("id-ID")}`,
-        },
-      })
-    }
+    // Notifications — fire both at once
+    await Promise.all([
+      lowStockProducts.length
+        ? db.notification.createMany({
+            data: lowStockProducts.map(p => ({
+              type: "low_stock",
+              message: `Stok "${p.name}" tinggal ${p.stock} ${p.unit} (minimum: ${p.minStock})`,
+            })),
+          })
+        : null,
+      transaction.total >= 1_000_000
+        ? db.notification.create({
+            data: {
+              type: "large_transaction",
+              message: `Transaksi besar ${transaction.invoiceNumber} senilai Rp ${transaction.total.toLocaleString("id-ID")}`,
+            },
+          })
+        : null,
+    ])
 
     return transaction
-  })
+  }, { timeout: 15000 })
 
   revalidatePath("/pos")
   revalidatePath("/dashboard")
@@ -113,17 +117,19 @@ export async function voidTransaction(id: string) {
   if (!tx || tx.status !== "completed") throw new Error("Cannot void")
 
   await prisma.$transaction(async (db) => {
-    await db.transaction.update({ where: { id }, data: { status: "voided" } })
-    for (const item of tx.items) {
-      await db.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } })
-      await db.stockMovement.create({
-        data: { productId: item.productId, type: "in", quantity: item.quantity, note: `Void ${tx.invoiceNumber}`, userId: session.user.id },
-      })
-    }
-    if (tx.customerId) {
-      await db.customer.update({ where: { id: tx.customerId }, data: { totalSpent: { decrement: tx.total } } })
-    }
-  })
+    await Promise.all([
+      db.transaction.update({ where: { id }, data: { status: "voided" } }),
+      ...tx.items.flatMap(item => [
+        db.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } }),
+        db.stockMovement.create({
+          data: { productId: item.productId, type: "in", quantity: item.quantity, note: `Void ${tx.invoiceNumber}`, userId: session.user.id },
+        }),
+      ]),
+      tx.customerId
+        ? db.customer.update({ where: { id: tx.customerId }, data: { totalSpent: { decrement: tx.total } } })
+        : null,
+    ])
+  }, { timeout: 15000 })
 
   revalidatePath("/dashboard/transactions")
 }
@@ -430,14 +436,16 @@ export async function receivePurchaseOrder(id: string, items: { productId: strin
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
   await prisma.$transaction(async (tx) => {
-    await tx.purchaseOrder.update({ where: { id }, data: { status: "received" } })
-    for (const item of items) {
-      await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } })
-      await tx.stockMovement.create({
-        data: { productId: item.productId, type: "in", quantity: item.quantity, note: `PO #${id}`, userId: session.user!.id!, purchaseOrderId: id },
-      })
-    }
-  })
+    await Promise.all([
+      tx.purchaseOrder.update({ where: { id }, data: { status: "received" } }),
+      ...items.flatMap(item => [
+        tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } }),
+        tx.stockMovement.create({
+          data: { productId: item.productId, type: "in", quantity: item.quantity, note: `PO #${id}`, userId: session.user!.id!, purchaseOrderId: id },
+        }),
+      ]),
+    ])
+  }, { timeout: 15000 })
   revalidatePath("/dashboard/purchases")
   revalidatePath(`/dashboard/purchases/${id}`)
   revalidatePath("/dashboard/inventory")

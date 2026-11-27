@@ -384,8 +384,7 @@ export function POSClient({
           <Sheet open={showMobileCart} onOpenChange={setShowMobileCart}>
             <SheetContent
               side="bottom"
-              showCloseButton={false}
-              className="flex h-[85vh] flex-col rounded-t-2xl p-0"
+              className="flex max-h-[85dvh] flex-col rounded-t-2xl p-0"
             >
               <SheetHeader className="flex shrink-0 flex-row items-center gap-2 border-b px-4 py-3">
                 <SheetTitle className="flex items-center gap-2 text-sm font-semibold">
@@ -412,7 +411,7 @@ export function POSClient({
                   </Button>
                 )}
               </SheetHeader>
-              <div className="flex-1 overflow-y-auto">
+              <div className="min-h-0 flex-1 overflow-y-auto">
                 {cart.items.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
                     <ShoppingCart className="size-8 opacity-20" />
